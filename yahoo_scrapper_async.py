@@ -1,5 +1,3 @@
-from datetime import datetime
-from structlog import get_logger
 import pandas as pd
 
 from structlog import get_logger
@@ -11,10 +9,7 @@ from lib.scrapper.YahooScrapper import YahooScrapper
 pd.options.display.max_columns = None
 pd.options.display.max_rows = None
 
-# create logger
-
-
-from multiprocessing import Pool, Queue
+from multiprocessing import Pool
 
 def download(symbol):
     try:
@@ -24,12 +19,12 @@ def download(symbol):
         ohlc_repository = FileOhlcRepository("d:/E2/_temp/stock", logger)
         df = scrapper.download_latest_minutes(symbol)
         ohlc_repository.write_data("yahoo", symbol, df)
-    except:
+    except Exception as ex:
+        print(ex)
         pass
 
 
 def main():
-    q = Queue()
     logger = get_logger()
     symbol_repository = SymbolRepository(logger)
     symbols = symbol_repository.get_avalible_stocks()
@@ -38,7 +33,6 @@ def main():
         p.map(download, tqdm(symbols))
 
     print('Exit')
-
 
 if __name__ == '__main__':
     main()
