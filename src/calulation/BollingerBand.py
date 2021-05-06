@@ -1,8 +1,8 @@
-from lib.calulation.indicator_builder import IndicatorBuilder
+from src.calulation.indicator_builder import IndicatorBuilder
 from talib import TEMA, STDDEV
 import pandas as pd
 
-from lib.calulation.utils import  replace_outliers_with_percentile, log_roc
+from src.calulation.utils import  replace_outliers_with_percentile, log_roc
 
 class BollingerBand(IndicatorBuilder):
     def __init__(self, property: str = 'close', n: int = 14, rocs=[]):

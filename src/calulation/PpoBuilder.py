@@ -1,11 +1,11 @@
 from typing import List
 
-from lib.calulation.indicator_builder import IndicatorBuilder
+from src.calulation.indicator_builder import IndicatorBuilder
 from talib import TEMA
 import pandas as pd
 import numpy as np
 
-from lib.calulation.utils import replace_outliers_0_centered, replace_outliers_0_centered_with_log, replace_outliers_with_percentile, log_roc
+from src.calulation.utils import replace_outliers_0_centered, replace_outliers_0_centered_with_log, replace_outliers_with_percentile, log_roc
 
 
 

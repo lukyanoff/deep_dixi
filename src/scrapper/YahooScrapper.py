@@ -4,7 +4,7 @@ import requests
 import pandas as pd
 from datetime import datetime, timedelta
 
-from lib.model.StockModel import StockModel
+from src.model.StockModel import StockModel
 
 
 class YahooScrapper:

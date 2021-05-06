@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 
 # from lib.calulation.ta import replace_outliers
-from lib.const import EPSILON
+from src.const import EPSILON
 
 
 

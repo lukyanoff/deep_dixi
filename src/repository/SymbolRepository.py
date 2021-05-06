@@ -1,6 +1,6 @@
 import requests
 
-from lib.model.StockModel import StockModel
+from src.model.StockModel import StockModel
 from typing import List
 
 class SymbolRepository:

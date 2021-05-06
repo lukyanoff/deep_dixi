@@ -2,9 +2,9 @@ import pandas as pd
 
 from structlog import get_logger
 from tqdm import tqdm
-from lib.repository.FileOhlcRepository import FileOhlcRepository
-from lib.repository.SymbolRepository import SymbolRepository
-from lib.scrapper.YahooScrapper import YahooScrapper
+from src.repository.FileOhlcRepository import FileOhlcRepository
+from src.repository.SymbolRepository import SymbolRepository
+from src.scrapper.YahooScrapper import YahooScrapper
 
 pd.options.display.max_columns = None
 pd.options.display.max_rows = None

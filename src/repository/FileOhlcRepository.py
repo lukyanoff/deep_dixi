@@ -5,7 +5,7 @@ import numpy as np
 
 import pandas as pd
 
-from lib.model.StockModel import StockModel
+from src.model.StockModel import StockModel
 
 
 class FileOhlcRepository:
