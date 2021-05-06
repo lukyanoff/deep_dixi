@@ -75,122 +75,89 @@ class MacdBuilder(IndicatorBuilder):
         return self._key('')
 
 
-class VortexNormBuilder(IndicatorBuilder):
-    def __init__(self, n: int):
-        self._n = n
-
-    def _key_positive(self):
-        return f"vortex_positive(n:{self._n})"
-
-    def _key_negative(self):
-        return f"vortex_negative(n:{self._n})"
-
-    def _key(self):
-        return f"vortex(n:{self._n})"
-
-    def _normilize_valie(self, items):
-        def f(v):
-            value = v
-            if v > 1.5:
-                value = 1.5
-            if v < 0.5:
-                value = 0.5
-            return value - 0.5
-
-        return list(map(f, items))
-
-    def build_(self, df: pd.DataFrame):
-        d = df[['close', 'open', 'high', 'low']]
-        d.reset_index(inplace=True, drop=True)
-        d = TA.VORTEX(d, self._n)
-        vp = d['VIp'].values
-        vn = d['VIm'].values
-
-        df[self._key_positive()] = self._normilize_valie(vp)
-        df[self._key_negative()] = self._normilize_valie(vn)
-        df.fillna(0, inplace=True)
-
-        # for roc in rocs:
-        #     df[(f'{self._key_positive()}_roc({roc})')] = normilized_roc(df[self._key_positive()], roc)
-        #     df[(f'{self._key_negative()}_roc({roc})')] = normilized_roc(df[self._key_negative()], roc)
-
-    def __str__(self):
-        return self._key_positive()
-
-
-class VortexBuilder(IndicatorBuilder):
-    def __init__(self, n: int = 14, rocs=[]):
-        self._n = n
-        self._rocs = rocs
-
-    def _key_positive(self):
-        return f"vortex_positive(n:{self._n})"
-
-    def _key_negative(self):
-        return f"vortex_negative(n:{self._n})"
-
-    def _key(self):
-        return f"vortex(n:{self._n})"
-
-    def build_(self, df: pd.DataFrame):
-        d = df[['close', 'open', 'high', 'low']]
-        d.reset_index(inplace=True, drop=True)
-        d = TA.VORTEX(d, self._n)
-        vp = d['VIp'].values
-        vn = d['VIm'].values
-
-        df[self._key_positive()] = vp
-        df[self._key_negative()] = vn
-        df.fillna(0, inplace=True)
-
-        for roc in self._rocs:
-            df[(f'{self._key_positive()}_roc({roc})')] = ROC(df[self._key_positive()], roc)
-            df[(f'{self._key_negative()}_roc({roc})')] = ROC(df[self._key_negative()], roc)
-
-    def __str__(self):
-        return self._key_positive()
-
-
+# class VortexNormBuilder(IndicatorBuilder):
+#     def __init__(self, n: int):
+#         self._n = n
+#
+#     def _key_positive(self):
+#         return f"vortex_positive(n:{self._n})"
+#
+#     def _key_negative(self):
+#         return f"vortex_negative(n:{self._n})"
+#
+#     def _key(self):
+#         return f"vortex(n:{self._n})"
+#
+#     def _normilize_valie(self, items):
+#         def f(v):
+#             value = v
+#             if v > 1.5:
+#                 value = 1.5
+#             if v < 0.5:
+#                 value = 0.5
+#             return value - 0.5
+#
+#         return list(map(f, items))
+#
+#     def build_(self, df: pd.DataFrame):
+#         d = df[['close', 'open', 'high', 'low']]
+#         d.reset_index(inplace=True, drop=True)
+#         d = TA.VORTEX(d, self._n)
+#         vp = d['VIp'].values
+#         vn = d['VIm'].values
+#
+#         df[self._key_positive()] = self._normilize_valie(vp)
+#         df[self._key_negative()] = self._normilize_valie(vn)
+#         df.fillna(0, inplace=True)
+#
+#         # for roc in rocs:
+#         #     df[(f'{self._key_positive()}_roc({roc})')] = normilized_roc(df[self._key_positive()], roc)
+#         #     df[(f'{self._key_negative()}_roc({roc})')] = normilized_roc(df[self._key_negative()], roc)
+#
+#     def __str__(self):
+#         return self._key_positive()
+#
+#
+# class VortexBuilder(IndicatorBuilder):
+#     def __init__(self, n: int = 14, rocs=[]):
+#         self._n = n
+#         self._rocs = rocs
+#
+#     def _key_positive(self):
+#         return f"vortex_positive(n:{self._n})"
+#
+#     def _key_negative(self):
+#         return f"vortex_negative(n:{self._n})"
+#
+#     def _key(self):
+#         return f"vortex(n:{self._n})"
+#
+#     def build_(self, df: pd.DataFrame):
+#         d = df[['close', 'open', 'high', 'low']]
+#         d.reset_index(inplace=True, drop=True)
+#         d = TA.VORTEX(d, self._n)
+#         vp = d['VIp'].values
+#         vn = d['VIm'].values
+#
+#         df[self._key_positive()] = vp
+#         df[self._key_negative()] = vn
+#         df.fillna(0, inplace=True)
+#
+#         for roc in self._rocs:
+#             df[(f'{self._key_positive()}_roc({roc})')] = ROC(df[self._key_positive()], roc)
+#             df[(f'{self._key_negative()}_roc({roc})')] = ROC(df[self._key_negative()], roc)
+#
+#     def __str__(self):
+#         return self._key_positive()
 
 
 
-class RsiBuilder(IndicatorBuilder):
-    def __init__(self, n: int, smooth: int, rocs=[]):
-        self._n = n
-        self._smooth = smooth
-        self._rocs = rocs
-
-    def _key(self, suffix=''):
-        return f"rsi{suffix}(n:{self._n}, smooth:{self._smooth})"
-
-    def build_(self, df: pd.DataFrame):
-        rsi = RSI(df['close'], timeperiod=self._n)
-        rsi_sm = SMA(rsi, self._smooth)
-
-        df[self._key('')] = rsi
-        df[self._key('_smooth')] = rsi_sm
-
-        for roc in self._rocs:
-            # df[f"{self._key('')}_roc({roc})"] = ROC(rsi, roc)
-            df[f"{self._key('_smooth')}_roc({roc})"] = ROC(rsi_sm, roc)
-
-    def __str__(self):
-        return self._key()
 
 
-class Roc(IndicatorBuilder):
-    def __init__(self, property: str, n: int = 2):
-        self._n = n
-        self._property = property
 
-    def _key(self):
-        return f"ROC(col:'{self._property}', n:{self._n})"
 
-    def build_(self, df: pd.DataFrame):
-        df[self._key()] = ROC(df[self._property], self._n)
 
-    def __str__(self):
-        return self._key()
+
 
 
 def build_indicatrors(_df: pd.DataFrame, indicator_builders: List[IndicatorBuilder]) -> pd.DataFrame:

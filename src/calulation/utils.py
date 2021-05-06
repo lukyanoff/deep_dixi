@@ -62,13 +62,22 @@ def replace_outliers_with_percentile(c, p=99):
     return c.apply(f)
 
 
-def log_roc(ser, n=2):
+def log_roc(ser, n=2, p=99):
     from talib import ROC
     v = ROC(ser, n)
     v = v.replace(np.inf, 0)
     v = v.fillna(0)
     v = replace_outliers_0_centered_with_log(v)
     v = v.round(2)
-    v = replace_outliers_with_percentile(v, 99)
+    v = replace_outliers_with_percentile(v, p)
+    return v
+
+def simple_roc(ser, n=2, p=99):
+    from talib import ROC
+    v = ROC(ser, n) / 100
+    v = v.replace(np.inf, 0)
+    v = v.fillna(0)
+    v = v.round(2)
+    v = replace_outliers_with_percentile(v, p)
     return v
 
