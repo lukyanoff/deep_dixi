@@ -16,20 +16,22 @@ class BollingerBand(IndicatorBuilder):
     def build_(self, df: pd.DataFrame):
         std = STDDEV(df[self._property])
         std = std.fillna(0)
-        std = replace_outliers_with_percentile(std, 99) *100
+        std = replace_outliers_with_percentile(std, 99) * 100
+        #std = std * 4# standartize
 
         sma = TEMA(df[self._property])
         sma = sma.fillna(0)
 
         bb_percent = 100 * (df[self._property] - sma) / std
-        bb_percent = replace_outliers_with_percentile(bb_percent, 99)
+        bb_percent = replace_outliers_with_percentile(bb_percent, 99.5)
+        #bb_percent = bb_percent / 4
 
         df[self._key("_STDDEV")] = std
         df[self._key("_%")] = bb_percent
 
         for roc in self._rocs:
             df[f"{self._key('_STDDEV')}_logroc({roc})"] = log_roc(std, roc)
-            df[f"{self._key('_')}_logroc({roc})"] = log_roc(bb_percent, roc)
+            df[f"{self._key('_%')}_logroc({roc})"] = log_roc(bb_percent, roc)
 
 
     def __str__(self):

@@ -1,12 +1,8 @@
-from typing import List
-
 from src.calulation.indicator_builder import IndicatorBuilder
-from talib import TEMA
 import pandas as pd
-import numpy as np
 from finta import TA
 
-from src.calulation.utils import replace_outliers_0_centered, replace_outliers_0_centered_with_log, replace_outliers_with_percentile, log_roc, replace_outliers
+from src.calulation.utils import log_roc, replace_outliers
 
 class VortexBuilder(IndicatorBuilder):
     def __init__(self, n: int = 14, rocs=[]):
@@ -34,6 +30,8 @@ class VortexBuilder(IndicatorBuilder):
         d['VIp'] = replace_outliers(d['VIp'])
         d['VIm'] = replace_outliers(d['VIm'])
 
+        d['VIp'] = d['VIp'] - 0.5
+        d['VIm'] = d['VIm'] - 0.5
 
         df[self._key_positive()] = d['VIp'].values
         df[self._key_negative()] = d['VIm'].values
@@ -41,6 +39,8 @@ class VortexBuilder(IndicatorBuilder):
         for roc in self._rocs:
             df[(f'{self._key_positive()}_logroc({roc})')] = log_roc(df[self._key_positive()], roc, p=99.9)
             df[(f'{self._key_negative()}_logroc({roc})')] = log_roc(df[self._key_negative()], roc, p=99.9)
+
+
 
     def __str__(self):
         return self._key_positive()
