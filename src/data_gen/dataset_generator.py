@@ -83,7 +83,7 @@ def generate_sliced_data_set_v1(symbol: StockModel):
 
     # generate batches
     all_slices = ta_utils.slice_df(df_1min, 4000) # 10000
-    slices = take_each_n(all_slices, 2000)
+    slices = take_each_n(all_slices, 1000)
     for slice in slices:
         if is_slice_has_price_spike(slice, 50):
             continue
@@ -99,7 +99,7 @@ def generate_sliced_data_set_v1(symbol: StockModel):
         min1_df_with_indicators = ta_utils.scaler_df(min1_df_with_indicators)
         min1_df_with_indicators = min1_df_with_indicators.drop(columns=["date", "close", "open", "date", "high", "low", "volume"])
 
-        small_slices = ta_utils.slice_df(min1_df_with_indicators, 240)
+        small_slices = ta_utils.slice_df(min1_df_with_indicators, 60)
         for s in small_slices:
              d = s.to_dict('list')
              d['profit'] = d['profit'][-1]
@@ -134,3 +134,4 @@ def generate_sliced_data_set_v2(symbol: StockModel):
         items = min1_df_with_indicators.to_dict('records')
         for s in items:
              yield s
+
