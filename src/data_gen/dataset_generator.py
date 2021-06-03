@@ -15,9 +15,10 @@ from src.calulation.BollingerBand import BollingerBand
 from src.calulation.PpoBuilder import PpoBuilder
 from src.calulation.RsiBuilder import RsiBuilder
 from src.calulation.VortexBuilder import VortexBuilder
+from src.calulation.TemaBuilder import TemaBuilder
 
 
-def _get_1min_data(symbol):
+def get_1min_data(symbol):
     from structlog import get_logger
     logger = get_logger()
     stop_date = datetime.utcnow()
@@ -29,7 +30,7 @@ def _get_1min_data(symbol):
     return df_original
 
 
-def _get_1day_data(symbol):
+def get_1day_data(symbol):
     yahoo_scrapper = YahooScrapper()
     df_1day = yahoo_scrapper.download_days(symbol)
     return df_1day
@@ -45,10 +46,10 @@ def is_slice_has_price_spike(df, threshold):
 TIME_FORMAT = "%m-%d-%Y %H-%M-%S"
 
 def get_inidicators():
-    rocs = [2, 5, 10]
+    rocs = [] # 2, 5, 10
 
     ppos = []
-    l = [5, 12, 24, 32, 64, 128, 256, 512, 1024, 2048]
+    l = [5, 12, 24, 32, 64, 128, 256, 512] # 2048
     for slow in l:
         for fast in l:
             if fast < slow:
@@ -72,28 +73,64 @@ def get_inidicators():
     indicators.extend(ppos)
     return indicators
 
-
+from src.calulation.utils import calculate_scalping_for_long_fast, calculate_scalping_for_short_fast
 def generate_sliced_data_set_v1(symbol: StockModel):
-    df_1min = _get_1min_data(symbol)
+    df_1min = get_1min_data(symbol)
     print(f"Load {len(df_1min)} items")
-    df_1min['profit'], df_1min['loss'] = ta_utils.get_long_profit_and_loss(df_1min, l=15)
+    df_1min['profit'] = calculate_scalping_for_long_fast(df_1min, 0.5 / 100, 0.25 / 100, 30)
+    df_1min = df_1min.dropna()
     indicators = get_inidicators()
 
     # generate batches
-    all_slices = ta_utils.slice_df(df_1min, 10000)
-    slices = take_each_n(all_slices, 1000)
+    all_slices = ta_utils.slice_df(df_1min, 4000) # 10000
+    slices = take_each_n(all_slices, 2000)
     for slice in slices:
         if is_slice_has_price_spike(slice, 50):
             continue
 
-        basic_price = slice.low.min()
-        basic_volume = slice.volume.min()
+        basic_price = slice.iloc[-1].close
+        basic_volume = slice.iloc[-1].volume
         ta_utils.normilize_data_(slice, basic_price, basic_volume)
 
         min1_df_with_indicators = build_indicatrors(slice, indicators)
-        min1_df_with_indicators = min1_df_with_indicators.iloc[7000:-1]
+        min1_df_with_indicators = min1_df_with_indicators.iloc[2000:-1]
+
+        min1_df_with_indicators = min1_df_with_indicators.dropna()
+        min1_df_with_indicators = ta_utils.scaler_df(min1_df_with_indicators)
+        min1_df_with_indicators = min1_df_with_indicators.drop(columns=["date", "close", "open", "date", "high", "low", "volume"])
+
+        small_slices = ta_utils.slice_df(min1_df_with_indicators, 240)
+        for s in small_slices:
+             d = s.to_dict('list')
+             d['profit'] = d['profit'][-1]
+             # d['loss'] = d['loss'][-1]
+             yield d
+
+def generate_sliced_data_set_v2(symbol: StockModel):
+    df_1min = get_1min_data(symbol)
+    print(f"Load {len(df_1min)} items")
+    df_1min['profit'], df_1min['loss'] = ta_utils.get_long_profit_and_loss(df_1min, l=15)
+    df_1min = df_1min.dropna()
+    indicators = get_inidicators()
+
+    # generate batches
+    all_slices = ta_utils.slice_df(df_1min, 4000)
+    slices = take_each_n(all_slices, 2000)
+    for slice in slices:
+        if is_slice_has_price_spike(slice, 50):
+            continue
+
+        basic_price = slice.iloc[0].low
+        basic_volume = slice.iloc[0].volume
+        ta_utils.normilize_data_(slice, basic_price, basic_volume)
+
+        min1_df_with_indicators = build_indicatrors(slice, indicators)
+        min1_df_with_indicators = min1_df_with_indicators.iloc[2000:-1]
+
+        min1_df_with_indicators = min1_df_with_indicators.dropna()
+        min1_df_with_indicators = min1_df_with_indicators.drop(columns=["date", "close", "open", "date", "high",  "low", "volume"])
+        min1_df_with_indicators = ta_utils.scaler_df(min1_df_with_indicators)
 
         items = min1_df_with_indicators.to_dict('records')
-
-        for i in items:
-            yield i
+        for s in items:
+             yield s

@@ -1,6 +1,10 @@
 import numpy as np
 import math
 
+from tqdm import tqdm
+
+
+
 
 def normilize_data_(df, basic_price, basic_volume):
     df['close'] = df['close'] / basic_price
@@ -173,3 +177,122 @@ def get_long_profit_and_loss(_df, l, open_indicator='close', profit_indicator='h
     profit = list(map(lambda a: a['profit'], data))
     loss = list(map(lambda a: a['loss'], data))
     return profit, loss
+
+
+def calculate_scalping_for_long_fast(_df, profit: float, risk: float, period: int):
+    df = _df.copy()
+    df['long_rate'] = 0
+    #df['result_long_position'] = 0
+    data = df.to_dict('records')
+    for open_position_index in range(len(data) - 1):
+        #logger.msg("Calculate", data=data[open_position_index]['date'] )
+        open_position_price = data[open_position_index]['high']
+        stop_loss_price = open_position_price - open_position_price * risk
+        take_profit_price = open_position_price + open_position_price * profit
+
+        close_position_max_index = min(len(data), open_position_index + period)
+        position = 0
+        for close_position_index in range(open_position_index + 1, close_position_max_index):
+            # update shared vars
+            position = position + 1
+
+            # check stop_loss
+            low_price = data[close_position_index]['low']
+            if low_price <= stop_loss_price:
+                data[open_position_index]['long_rate'] = -1
+                break
+
+            # check take profit
+            high_price = data[close_position_index]['high']
+            if high_price >= take_profit_price:
+                data[open_position_index]['long_rate'] = 1
+                break
+
+    df_ = pd.DataFrame(data)
+    df_.set_index('date', inplace=True, drop=False)
+    return df_['long_rate']
+
+def calculate_scalping_for_short_fast(_df, profit: float, risk: float, period: int):
+    df = _df.copy()
+    df['short_rate'] = 0
+    #df['result_short_position'] = 0
+    data = df.to_dict('records')
+    for open_position_index in range(len(data) - 1):
+        #logger.msg("Calculate", data=data[open_position_index]['date'] )
+        open_position_price = data[open_position_index ]['low']
+        stop_loss_price = open_position_price + open_position_price * risk
+        take_profit_price = open_position_price - open_position_price * profit
+
+        close_position_max_index = min(len(data), open_position_index + period)
+        position = 0
+        for close_position_index in range(open_position_index + 1, close_position_max_index):
+            # update shared vars
+            position = position + 1
+
+            # check stop_loss
+            high_price = data[close_position_index]['high']
+            if high_price >= stop_loss_price:
+                data[open_position_index]['short_rate'] = -1
+                break
+
+            # check take profit
+            low_price = data[close_position_index]['low']
+            if low_price <= take_profit_price:
+                data[open_position_index]['short_rate'] = 1
+                break
+
+    df_ = pd.DataFrame(data)
+    df_.set_index('date', inplace=True, drop=False)
+    return df_['short_rate']
+
+#######
+def get_all_stocks():
+    import csv
+    from src.model.StockModel import StockModel
+    with open('./_data/watchlist1.txt', newline='') as csvfile:
+        records = list(csv.reader(csvfile, delimiter=','))[0]
+        for s in records:
+            yield StockModel.parse(s)
+
+
+#######
+# scale dataset
+from sklearn.preprocessing import StandardScaler
+import urllib
+import pickle
+raw_columns = {'date', 'low', 'close', 'high', 'open', 'volume', 'profit', 'loss'}
+
+def _get_scaler_file_name(col):
+    encoded_col = urllib.parse.quote(col)
+    file_name = f"./.temp/scaler/{encoded_col}.json"
+    return file_name
+
+def fit_scalers(df):
+    for col in tqdm(df.columns):
+        if col in raw_columns:
+            continue
+
+        scaler = StandardScaler(with_mean=False)
+        scaler.fit(df[[col]])
+        file_name = _get_scaler_file_name(col)
+        pickle.dump(scaler, open(file_name, 'wb'))
+
+
+#%%
+
+from pickle import dump, load
+import urllib
+
+def scaler_df(_df):
+    df = _df.copy()
+    for col in df.columns:
+        if col in raw_columns:
+            continue
+
+        file_name = _get_scaler_file_name(col)
+
+        scaler = load(open(file_name, 'rb'))
+        df[[col]] = scaler.transform(df[[col]])
+        df[col] = df[col] / 8
+
+    return df

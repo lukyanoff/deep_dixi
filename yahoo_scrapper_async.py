@@ -19,15 +19,19 @@ def download(symbol):
         ohlc_repository = FileOhlcRepository("d:/E2/_temp/stock", logger)
         df = scrapper.download_latest_minutes(symbol)
         ohlc_repository.write_data("yahoo", symbol, df)
+        return None, symbol
     except Exception as ex:
-        print(ex)
-        pass
+        print(symbol, ex)
+        return ex, None
 
 
 def main():
     logger = get_logger()
     symbol_repository = SymbolRepository(logger)
     symbols = symbol_repository.get_avalible_stocks()
+
+    # for i in symbols:
+    #     download(i)
 
     with Pool(25) as p:
         p.map(download, tqdm(symbols))

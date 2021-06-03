@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/deep_dixi.iml" filepath="$PROJECT_DIR$/.idea/deep_dixi.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/dixi.iml" filepath="$PROJECT_DIR$/.idea/dixi.iml" />
     </modules>
   </component>
 </project>
