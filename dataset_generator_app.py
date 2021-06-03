@@ -67,24 +67,24 @@ def save_to_file(stock):
 def main():
     symbols = [
         StockModel.parse("NASDAQ:MSFT"),
-        # StockModel.parse("NASDAQ:AAPL"),
-        # StockModel.parse("NASDAQ:TEAM"),
-        # StockModel.parse("NASDAQ:TSLA"),
-        # StockModel.parse("NASDAQ:NVDA"),
-        # StockModel.parse("NASDAQ:TTD"),
-        # StockModel.parse("NASDAQ:ZS"),
-        # StockModel.parse("NASDAQ:DOCU"),
-        # StockModel.parse("NYSE:BABA"),
-        # StockModel.parse("NASDAQ:DDOG")
+        StockModel.parse("NASDAQ:AAPL"),
+        StockModel.parse("NASDAQ:TEAM"),
+        StockModel.parse("NASDAQ:TSLA"),
+        StockModel.parse("NASDAQ:NVDA"),
+        StockModel.parse("NASDAQ:TTD"),
+        StockModel.parse("NASDAQ:ZS"),
+        StockModel.parse("NASDAQ:DOCU"),
+        StockModel.parse("NYSE:BABA"),
+        StockModel.parse("NASDAQ:DDOG")
     ]
 
     # symbols = list(get_all_stocks())
     # symbols = list(filter(lambda a: a.exchange!='NYSE', symbols))
     print(symbols)
-    for stock in symbols:
-        save_to_file(stock)
-    # with Pool(5) as p:
-    #     p.map(save_to_file, tqdm(symbols))
+    # for stock in symbols:
+    #     save_to_file(stock)
+    with Pool(5) as p:
+        p.map(save_to_file, tqdm(symbols))
 
     print('Exit')
 
